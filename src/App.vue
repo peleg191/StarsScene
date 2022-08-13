@@ -12,7 +12,7 @@
         <BoxGeometry :width="2" :height="2" :depth="10" />
         <StandardMaterial :props="{ transparent: true, opacity: 0.9, metalness: 0.8, roughness: 0.5 }" />
       </InstancedMesh>
-      <Text text="Peleg.tech" font-src="/assets/helvetiker_regular.typeface.json" align="center" :size="20" :height="1"
+      <Text text="Peleg.tech" font-src="./assets/helvetiker_regular.typeface.json" align="center" :size="20" :height="1"
         :position="{ x: 0, y: 0, z: 10 }">
         <PhongMaterial />
       </Text>
