@@ -12,7 +12,7 @@
         <BoxGeometry :width="2" :height="2" :depth="10" />
         <StandardMaterial :props="{ transparent: true, opacity: 0.9, metalness: 0.8, roughness: 0.5 }" />
       </InstancedMesh>
-      <Text text="Peleg.tech" font-src="./assets/helvetiker_regular.typeface.json" align="center" :size="20" :height="1"
+      <Text :text="text" font-src="./assets/helvetiker_regular.typeface.json" align="center" :size="20" :height="1"
         :position="{ x: 0, y: 0, z: 10 }">
         <PhongMaterial />
       </Text>
@@ -72,7 +72,8 @@ export default {
       pane: {},
       attraction: 0,
       ambientLightColor: '#808080',
-      vlimit: 0.8
+      vlimit: 0.8,
+      text:'Peleg.tech'
     }
   },
   setup() {
@@ -197,6 +198,7 @@ export default {
     this.pane.addInput(this, 'attraction', { min: 0, max: 1 });
     this.pane.addInput(this, 'vlimit', { min: 0, max: 3 });
     this.pane.addInput(this, 'ambientLightColor');
+    this.pane.addInput(this, 'text');
     document.addEventListener('keydown', (e) => {
       if (e.code == 'KeyW' || e.code == 'ArrowUp') {
         this.vlimit += 0.01;
