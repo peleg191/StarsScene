@@ -7,9 +7,9 @@
       <PointLight ref="light" color="#0060ff" :intensity="0.5" />
       <PointLight color="#ff6000" :intensity="0.5" :position="{ x: 100 }" />
       <PointLight color="#0000ff" :intensity="0.5" :position="{ x: -100 }" />
-      <PointLight color="#ff00ff" :intensity="0.1" :position="{ z: 100 }" />
+      <PointLight color="#ff00ff" :intensity="0.01" :position="{ z: 100 }" />
       <InstancedMesh ref="imesh" :count="NUM_INSTANCES">
-        <BoxGeometry :width="2" :height="2" :depth="10" />
+        <BoxGeometry :width="2" :height="2" :depth="starLength" />
         <StandardMaterial :props="{ transparent: true, opacity: 0.9, metalness: 0.8, roughness: 0.5 }" />
       </InstancedMesh>
       <Text :text="text" font-src="./assets/helvetiker_regular.typeface.json" align="center" :size="20" :height="1"
@@ -72,12 +72,14 @@ export default {
       pane: {},
       attraction: 0,
       ambientLightColor: '#808080',
-      vlimit: 0.8,
-      text:'Peleg.tech'
+      vlimit: 1.2,
+      text: 'Peleg.tech',
+      starLength: 10,
+      cursorAttraction: false
     }
   },
   setup() {
-    const NUM_INSTANCES = 2000;
+    const NUM_INSTANCES = 9000;
     const instances = [];
     const target = new Vector3();
     const dummyO = new Object3D();
@@ -88,7 +90,7 @@ export default {
         position: new Vector3(rndFS(12), rndFS(12), rndFS(12)),
         scale: rnd(0.2, 1),
         scaleZ: rnd(0.1, 1),
-        velocity: new Vector3(rndFS(2), rndFS(2), rndFS(2)),
+        velocity: new Vector3(rndFS(6), rndFS(3), rndFS(10)),
         attraction: 0,
         vlimit: 1.2 + rnd(-0.1, 0.1),
       });
@@ -124,7 +126,12 @@ export default {
       this.renderer.onBeforeRender(this.animate);
     },
     animate() {
-      this.target.copy({ x: this.x, y: this.y, z: this.z });
+      if (this.cursorAttraction) {
+        const { pointer } = this.renderer.three;
+        this.target.copy(pointer.positionV3);
+      }
+      else
+        this.target.copy({ x: this.x, y: this.y, z: this.z });
       this.light.position.copy(this.target);
       for (let i = 0; i < this.NUM_INSTANCES; i++) {
         const { position, velocity } = this.instances[i];
@@ -132,9 +139,9 @@ export default {
         this.dummyV.copy(this.target).sub(position).normalize().multiplyScalar(attraction);
         velocity.add(this.dummyV).clampScalar(-vlimit, vlimit);
         position.add(velocity);
-        if (position.z > 300 || position.z < -500) {
+        if (position.z > 300 || position.z < -1000) {
           this.instances[i] = {
-            position: new Vector3(rndFS(16), rndFS(16), -499),
+            position: new Vector3(rndFS(23), rndFS(23), -999),
             scale: rnd(0.2, 1),
             scaleZ: rnd(0.1, 1),
             velocity: new Vector3(rndFS(2), rndFS(2), rndFS(100)),
@@ -150,7 +157,7 @@ export default {
       }
       this.imesh.instanceMatrix.needsUpdate = true;
       this.movmentX(200);
-      this.movmentY(50)
+      this.movmentY(50);
     },
     movmentX(range) {
       let value = this.x;
@@ -196,18 +203,34 @@ export default {
     this.light = this.$refs.light.light;
     this.pane = new Pane();
     this.pane.addInput(this, 'attraction', { min: 0, max: 1 });
-    this.pane.addInput(this, 'vlimit', { min: 0, max: 3 });
+    this.pane.addInput(this, 'vlimit', { min: 0, max: 12 });
     this.pane.addInput(this, 'ambientLightColor');
     this.pane.addInput(this, 'text');
+    this.pane.addInput(this, 'starLength', { min: 0, max: 100 });
+    this.pane.addInput(this, 'cursorAttraction');
     document.addEventListener('keydown', (e) => {
+      debugger;
       if (e.code == 'KeyW' || e.code == 'ArrowUp') {
-        this.vlimit += 0.01;
+        this.keyPressed = true;
+        this.vlimit = this.vlimit > 99 ? 99 : this.vlimit + 1;
+        this.starLength = this.starLength > 99 ? 99 : this.starLength + 1.9;
       }
       if (e.code == 'KeyS' || e.code == 'ArrowDown') {
-        this.vlimit -= 0.01;
+        this.keyPressed = true;
+        this.vlimit = this.vlimit < 1 ? 1 : this.vlimit - 1;
+        this.starLength = this.starLength < 1 ? 1 : this.starLength - 1;
+      }
+      if (e.code == 'Space') {
+        this.attraction = 0;
+      }
+      if (e.ctrlKey) {
+        this.attraction = this.attraction >= 1 ? 1 : this.attraction + 0.01;
+      }
+      if (e.code == 'ShiftLeft') {
+        this.attraction = this.attraction >= 0.01 ? this.attraction - 0.01 : 0.01;
       }
       this.pane.refresh();
-    })
+    });
     this.init();
   },
 };
